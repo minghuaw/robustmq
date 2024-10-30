@@ -26,7 +26,7 @@ pub fn default_http_port() -> usize {
 pub fn default_network() -> Network {
     Network {
         tcp_port: default_network_tcp_port(),
-        tcps_port: default_network_tcps_port(),
+        tls_port: default_network_tls_port(),
         websocket_port: default_network_websocket_port(),
         websockets_port: default_network_websockets_port(),
         quic_port: default_network_quic_port(),
@@ -37,7 +37,7 @@ pub fn default_network() -> Network {
 pub fn default_network_tcp_port() -> u32 {
     1883
 }
-pub fn default_network_tcps_port() -> u32 {
+pub fn default_network_tls_port() -> u32 {
     1884
 }
 pub fn default_network_websocket_port() -> u32 {

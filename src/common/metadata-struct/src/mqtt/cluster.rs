@@ -50,7 +50,7 @@ pub struct MqttClusterDynamicConfigSecurity {
 #[derive(Serialize, Deserialize, Default, Clone)]
 pub struct MqttClusterDynamicConfigNetwork {
     pub tcp_max_connection_num: u64,
-    pub tcps_max_connection_num: u64,
+    pub tls_max_connection_num: u64,
     pub websocket_max_connection_num: u64,
     pub websockets_max_connection_num: u64,
     pub response_max_try_mut_times: u64,
@@ -100,7 +100,7 @@ impl MqttClusterDynamicConfig {
             },
             network: MqttClusterDynamicConfigNetwork {
                 tcp_max_connection_num: 1000,
-                tcps_max_connection_num: 1000,
+                tls_max_connection_num: 1000,
                 websocket_max_connection_num: 1000,
                 websockets_max_connection_num: 1000,
                 response_max_try_mut_times: 128,

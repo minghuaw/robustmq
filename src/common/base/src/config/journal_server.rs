@@ -35,7 +35,7 @@ use serde::Deserialize;
 use super::common::Log;
 use super::default_journal_server::{
     default_grpc_port, default_log, default_network, default_network_tcp_port,
-    default_network_tcps_port, default_prometheus, default_prometheus_port, default_storage,
+    default_network_tls_port, default_prometheus, default_prometheus_port, default_storage,
     default_system, default_tcp_thread,
 };
 use crate::tools::{read_file, try_create_fold};
@@ -66,8 +66,8 @@ pub struct Network {
     pub grpc_port: u32,
     #[serde(default = "default_network_tcp_port")]
     pub tcp_port: u32,
-    #[serde(default = "default_network_tcps_port")]
-    pub tcps_port: u32,
+    #[serde(default = "default_network_tls_port")]
+    pub tls_port: u32,
     #[serde(default)]
     pub tls_cert: String,
     #[serde(default)]
@@ -187,7 +187,7 @@ mod tests {
         assert_eq!(conf.placement_center, vec![String::from("127.0.0.1:1228")]);
         assert_eq!(conf.network.grpc_port, 2228);
         assert_eq!(conf.network.tcp_port, 3110);
-        assert_eq!(conf.network.tcps_port, 3111);
+        assert_eq!(conf.network.tls_port, 3111);
 
         assert_eq!(conf.system.runtime_work_threads, 100);
 

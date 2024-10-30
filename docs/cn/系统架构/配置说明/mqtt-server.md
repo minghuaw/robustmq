@@ -24,7 +24,7 @@ placement_center = ["127.0.0.1:1228"]
 [network]
 # MQTT协议, 默认1883和8883
 tcp_port = 1883
-tcps_port = 8883
+tls_port = 8883
 
 # WebSocket协议, 默认8083和8084
 websocket_port = 8083

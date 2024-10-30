@@ -35,7 +35,7 @@ use serde::{Deserialize, Serialize};
 use super::common::{Auth, Log, Storage};
 use super::default_mqtt::{
     default_auth, default_grpc_port, default_http_port, default_log, default_network,
-    default_network_quic_port, default_network_tcp_port, default_network_tcps_port,
+    default_network_quic_port, default_network_tcp_port, default_network_tls_port,
     default_network_websocket_port, default_network_websockets_port, default_storage,
     default_system, default_tcp_thread,
 };
@@ -69,8 +69,8 @@ pub struct BrokerMqttConfig {
 pub struct Network {
     #[serde(default = "default_network_tcp_port")]
     pub tcp_port: u32,
-    #[serde(default = "default_network_tcps_port")]
-    pub tcps_port: u32,
+    #[serde(default = "default_network_tls_port")]
+    pub tls_port: u32,
     #[serde(default = "default_network_websocket_port")]
     pub websocket_port: u32,
     #[serde(default = "default_network_websockets_port")]
@@ -183,7 +183,7 @@ mod tests {
         assert_eq!(config.http_port, 9982);
 
         assert_eq!(config.network.tcp_port, 1883);
-        assert_eq!(config.network.tcps_port, 8883);
+        assert_eq!(config.network.tls_port, 8883);
         assert_eq!(config.network.websocket_port, 8093);
         assert_eq!(config.network.websockets_port, 8043);
         assert_eq!(config.network.quic_port, 9083);
@@ -234,7 +234,7 @@ mod tests {
         assert_eq!(config.http_port, 9982);
 
         assert_eq!(config.network.tcp_port, 1883);
-        assert_eq!(config.network.tcps_port, 8883);
+        assert_eq!(config.network.tls_port, 8883);
         assert_eq!(config.network.websocket_port, 8093);
         assert_eq!(config.network.websockets_port, 8043);
         assert_eq!(config.network.quic_port, 9083);

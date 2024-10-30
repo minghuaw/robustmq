@@ -20,7 +20,7 @@ placement_center = ["127.0.0.1:1228"]
 
 [network]
 tcp_port = 1883
-tcps_port = 8883
+tls_port = 8883
 websocket_port = 8093
 websockets_port = 8043
 quic_port = 9083

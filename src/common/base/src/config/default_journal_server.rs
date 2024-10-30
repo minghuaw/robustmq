@@ -19,7 +19,7 @@ pub fn default_network() -> Network {
     Network {
         grpc_port: default_grpc_port(),
         tcp_port: default_network_tcp_port(),
-        tcps_port: default_network_tcps_port(),
+        tls_port: default_network_tls_port(),
         tls_cert: "".to_string(),
         tls_key: "".to_string(),
     }
@@ -31,7 +31,7 @@ pub fn default_grpc_port() -> u32 {
 pub fn default_network_tcp_port() -> u32 {
     3110
 }
-pub fn default_network_tcps_port() -> u32 {
+pub fn default_network_tls_port() -> u32 {
     3111
 }
 
