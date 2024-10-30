@@ -26,6 +26,7 @@ websockets_port = 8043
 quic_port = 9083
 tls_cert = "./config/example/certs/cert.pem"
 tls_key = "./config/example/certs/key.pem"
+tls_ca_cert = "./config/example/certs/ca.pem"
 
 [tcp_thread]
 accept_thread_num = 1

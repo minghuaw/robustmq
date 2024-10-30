@@ -18,10 +18,12 @@ placement_center = ["127.0.0.1:1228"]
 
 [network]
 grpc_port = 2228
+grpc_tls_enable = false
 tcp_port = 3110
 tls_port = 3111
 tls_cert = "./config/example/certs/cert.pem"
 tls_key = "./config/example/certs/key.pem"
+tls_ca_cert = "./config/example/certs/ca.pem"
 
 [system]
 runtime_work_threads = 100
