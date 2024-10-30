@@ -119,12 +119,24 @@ impl JournalServer {
     }
 
     fn start_grpc_server(&self) {
+        let tls_config = match self.config.network.grpc_tls_enable {
+            true => {
+                let cert = std::fs::read_to_string(&self.config.network.tls_cert)
+                    .expect("failed to read tls_cert");
+                let key = std::fs::read_to_string(&self.config.network.tls_key)
+                    .expect("failed to read tls_key");
+                let identity = tonic::transport::Identity::from_pem(cert, key);
+                Some(tonic::transport::ServerTlsConfig::new().identity(identity))
+            }
+            false => None,
+        };
         let server = GrpcServer::new(
             self.config.network.grpc_port,
             self.client_pool.clone(),
             self.cache_manager.clone(),
             self.segment_file_manager.clone(),
             self.rocksdb_engine_handler.clone(),
+            tls_config,
         );
         self.server_runtime.spawn(async move {
             match server.start().await {

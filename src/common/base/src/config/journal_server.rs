@@ -64,6 +64,8 @@ pub struct JournalServerConfig {
 pub struct Network {
     #[serde(default = "default_grpc_port")]
     pub grpc_port: u32,
+    #[serde(default)]
+    pub grpc_tls_enable: bool,
     #[serde(default = "default_network_tcp_port")]
     pub tcp_port: u32,
     #[serde(default = "default_network_tls_port")]
@@ -188,6 +190,7 @@ mod tests {
         assert_eq!(conf.network.grpc_port, 2228);
         assert_eq!(conf.network.tcp_port, 3110);
         assert_eq!(conf.network.tls_port, 3111);
+        assert_eq!(conf.network.grpc_tls_enable, false);
 
         assert_eq!(conf.system.runtime_work_threads, 100);
 

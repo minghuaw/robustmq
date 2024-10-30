@@ -20,7 +20,7 @@ use log::info;
 use protocol::journal_server::journal_admin::journal_server_admin_service_server::JournalServerAdminServiceServer;
 use protocol::journal_server::journal_inner::journal_server_inner_service_server::JournalServerInnerServiceServer;
 use rocksdb_engine::RocksDBEngine;
-use tonic::transport::Server;
+use tonic::transport::{Server, ServerTlsConfig};
 
 use crate::core::cache::CacheManager;
 use crate::segment::manager::SegmentFileManager;
@@ -33,15 +33,20 @@ pub struct GrpcServer {
     cache_manager: Arc<CacheManager>,
     segment_file_manager: Arc<SegmentFileManager>,
     rocksdb_engine_handler: Arc<RocksDBEngine>,
+    tls_config: Option<ServerTlsConfig>,
 }
 
 impl GrpcServer {
+    /// Creates a new GrpcServer
+    /// 
+    /// gRPC over TLS is enabled if tls_config is `Some(_)`
     pub fn new(
         port: u32,
         client_pool: Arc<ClientPool>,
         cache_manager: Arc<CacheManager>,
         segment_file_manager: Arc<SegmentFileManager>,
         rocksdb_engine_handler: Arc<RocksDBEngine>,
+        tls_config: Option<ServerTlsConfig>,
     ) -> Self {
         Self {
             port,
@@ -49,6 +54,7 @@ impl GrpcServer {
             cache_manager,
             segment_file_manager,
             rocksdb_engine_handler,
+            tls_config,
         }
     }
     pub async fn start(&self) -> Result<(), CommonError> {
@@ -64,7 +70,13 @@ impl GrpcServer {
             self.rocksdb_engine_handler.clone(),
         );
 
-        Server::builder()
+        let mut server_builder = Server::builder();
+
+        if let Some(tls_config) = &self.tls_config {
+            server_builder = server_builder.tls_config(tls_config.clone())?;
+        }
+
+        server_builder
             .add_service(JournalServerAdminServiceServer::new(admin_handler))
             .add_service(JournalServerInnerServiceServer::new(inner_handler))
             .serve(addr)

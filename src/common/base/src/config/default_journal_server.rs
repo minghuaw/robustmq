@@ -18,6 +18,7 @@ use super::journal_server::{Network, Prometheus, Storage, System, TcpThread};
 pub fn default_network() -> Network {
     Network {
         grpc_port: default_grpc_port(),
+        grpc_tls_enable: false,
         tcp_port: default_network_tcp_port(),
         tls_port: default_network_tls_port(),
         tls_cert: "".to_string(),
