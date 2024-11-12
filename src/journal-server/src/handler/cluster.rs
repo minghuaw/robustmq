@@ -37,7 +37,7 @@ impl ClusterHandler {
             result.push(GetClusterMetadataNode {
                 node_id: node.node_id,
                 tcp_addr: journal_extend.tcp_addr,
-                tcps_addr: journal_extend.tcps_addr,
+                tls_addr: journal_extend.tls_addr,
             });
         }
         Ok(result)

@@ -43,7 +43,7 @@ pub async fn register_journal_node(
     let extend = JournalNodeExtend {
         data_fold: conf.storage.data_path.clone(),
         tcp_addr: format!("{}:{}", get_local_ip(), conf.network.tcp_port),
-        tcps_addr: format!("{}:{}", get_local_ip(), conf.network.tcps_port),
+        tls_addr: format!("{}:{}", get_local_ip(), conf.network.tls_port),
     };
 
     let req = RegisterNodeRequest {
