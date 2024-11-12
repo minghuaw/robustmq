@@ -56,7 +56,7 @@ message GetClusterMetadataRespBody{
 message GetClusterMetadataNode{
     uint64 node_id = 1;
     string tcp_addr = 2;
-    string tcps_addr = 3;
+    string tls_addr = 3;
 }
 
 message GetClusterMetadataResp{
