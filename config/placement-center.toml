@@ -21,6 +21,10 @@ nodes = { 1 = "127.0.0.1:1228" }
 [network]
 grpc_port = 1228
 http_port = 1227
+grpc_tls_enable = false
+grpc_tls_cert = "./config/example/certs/cert.pem"
+grpc_tls_key = "./config/example/certs/key.pem"
+grpc_tls_ca_cert = "./config/example/certs/ca.pem"
 
 [system]
 runtime_work_threads = 100

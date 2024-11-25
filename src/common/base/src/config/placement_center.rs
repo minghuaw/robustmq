@@ -75,6 +75,12 @@ pub struct Network {
     pub grpc_port: u32,
     #[serde(default = "default_http_port")]
     pub http_port: u32,
+    #[serde(default)]
+    pub grpc_tls_enable: bool,
+    #[serde(default)]
+    pub grpc_tls_cert: String,
+    #[serde(default)]
+    pub grpc_tls_key: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default, PartialEq, Eq)]

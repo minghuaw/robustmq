@@ -36,6 +36,9 @@ pub fn default_network() -> Network {
     Network {
         grpc_port: default_grpc_port(),
         http_port: default_http_port(),
+        grpc_tls_enable: Default::default(),
+        grpc_tls_cert: Default::default(),
+        grpc_tls_key: Default::default(),
     }
 }
 

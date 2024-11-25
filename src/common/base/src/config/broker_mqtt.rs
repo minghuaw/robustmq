@@ -84,6 +84,14 @@ pub struct Network {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
+pub struct InterNodeNetwork {
+    pub grpc_port: u32,
+    pub grpc_tls_enable: bool,
+    pub grpc_tls_cert: String,
+    pub grpc_tls_key: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct TcpThread {
     #[serde(default)]
     pub accept_thread_num: usize,

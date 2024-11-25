@@ -52,7 +52,7 @@ mod tests {
         let extend = JournalNodeExtend {
             data_fold: vec![node_fold.clone()],
             tcp_addr: "".to_string(),
-            tcps_addr: "".to_string(),
+            tls_addr: "".to_string(),
         };
 
         let request = RegisterNodeRequest {
@@ -271,7 +271,7 @@ mod tests {
         let extend = JournalNodeExtend {
             data_fold: vec![node_fold.clone()],
             tcp_addr: "".to_string(),
-            tcps_addr: "".to_string(),
+            tls_addr: "".to_string(),
         };
 
         let request = RegisterNodeRequest {
@@ -412,7 +412,7 @@ mod tests {
         let extend = JournalNodeExtend {
             data_fold: vec![node_fold.clone()],
             tcp_addr: "".to_string(),
-            tcps_addr: "".to_string(),
+            tls_addr: "".to_string(),
         };
 
         let request = RegisterNodeRequest {
@@ -521,7 +521,7 @@ mod tests {
         let extend = JournalNodeExtend {
             data_fold: vec![node_fold.clone()],
             tcp_addr: "".to_string(),
-            tcps_addr: "".to_string(),
+            tls_addr: "".to_string(),
         };
 
         let request = RegisterNodeRequest {
