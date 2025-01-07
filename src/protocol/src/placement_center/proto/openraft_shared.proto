@@ -1,0 +1,7 @@
+syntax = "proto3";
+package placement.center.openraft_shared;
+
+message ForwardToLeader {
+    optional uint64 leader_node_id = 1;
+    optional string leader_node_addr = 2;
+}

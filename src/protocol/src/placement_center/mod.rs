@@ -15,6 +15,10 @@
 #![cfg_attr(any(), rustfmt::skip)]
 #![allow(clippy::all)]
 
+pub mod openraft_shared {
+    tonic::include_proto!("placement.center.openraft_shared");
+}
+
 pub mod placement_center_journal {
     tonic::include_proto!("placement.center.journal");
 }

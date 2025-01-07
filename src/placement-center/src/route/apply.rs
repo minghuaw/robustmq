@@ -14,8 +14,10 @@
 
 use std::time::Duration;
 
+use openraft::error::{ClientWriteError, RaftError};
 use openraft::raft::ClientWriteResponse;
 use openraft::Raft;
+use protocol::placement_center::openraft_shared::ForwardToLeader;
 use tokio::time::timeout;
 
 use crate::core::error::PlacementCenterError;
@@ -26,30 +28,51 @@ pub struct RaftMachineApply {
     pub openraft_node: Raft<TypeConfig>,
 }
 
+pub enum RaftWriteResult {
+    Ok(ClientWriteResponse<TypeConfig>),
+    Err(ForwardToLeader),
+}
+
 impl RaftMachineApply {
     pub fn new(openraft_node: Raft<TypeConfig>) -> Self {
         RaftMachineApply { openraft_node }
     }
 
+    #[must_use]
     pub async fn client_write(
         &self,
         data: StorageData,
-    ) -> Result<Option<ClientWriteResponse<TypeConfig>>, PlacementCenterError> {
-        match self.raft_write(data).await {
-            Ok(data) => Ok(Some(data)),
-            Err(e) => Err(e),
-        }
+    ) -> Result<RaftWriteResult, PlacementCenterError> {
+        self.raft_write(data).await
     }
 
+    #[inline]
+    #[must_use]
     async fn raft_write(
         &self,
         data: StorageData,
-    ) -> Result<ClientWriteResponse<TypeConfig>, PlacementCenterError> {
+    ) -> Result<RaftWriteResult, PlacementCenterError> {
         let resp = timeout(
             Duration::from_secs(10),
             self.openraft_node.client_write(data),
         )
         .await?;
-        Ok(resp?)
+
+        match resp {
+            Ok(res) => Ok(RaftWriteResult::Ok(res)),
+            Err(err) => match err {
+                RaftError::APIError(write_err) => match write_err {
+                    ClientWriteError::ForwardToLeader(e) => {
+                        let forward_to_leader = ForwardToLeader {
+                            leader_node_id: e.leader_node.as_ref().map(|node| node.node_id),
+                            leader_node_addr: e.leader_node.map(|node| node.rpc_addr),
+                        };
+                        Ok(RaftWriteResult::Err(forward_to_leader))
+                    },
+                    ClientWriteError::ChangeMembershipError(e) => Err(e.into()),
+                },
+                RaftError::Fatal(fatal) => Err(fatal.into()),
+            },
+        }
     }
 }

@@ -17,6 +17,8 @@
 syntax = "proto3";
 package placement.center.kv;
 
+import "openraft_shared.proto";
+
 service KvService {
 
   rpc set(SetRequest) returns(SetReply){}
@@ -34,6 +36,7 @@ message SetRequest{
 }
 
 message SetReply{
+    placement.center.openraft_shared.ForwardToLeader forward_to_leader = 1;
 }
 
 message GetRequest{
@@ -49,6 +52,7 @@ message DeleteRequest{
 }
 
 message DeleteReply{
+    placement.center.openraft_shared.ForwardToLeader forward_to_leader = 1;
 }
 
 message ExistsRequest{

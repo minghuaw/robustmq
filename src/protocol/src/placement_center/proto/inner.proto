@@ -17,6 +17,8 @@
 syntax = "proto3";
 package placement.center.inner;
 
+import "openraft_shared.proto";
+
 // The type of the cluster.
 enum ClusterType{
     // The type of the PlacementCenter.
@@ -145,7 +147,7 @@ message SetResourceConfigRequest{
 }
 
 message SetResourceConfigReply{
-
+    placement.center.openraft_shared.ForwardToLeader forward_to_leader = 1;
 }
 
 message GetResourceConfigRequest{
@@ -163,7 +165,7 @@ message DeleteResourceConfigRequest{
 }
 
 message DeleteResourceConfigReply{
-
+    placement.center.openraft_shared.ForwardToLeader forward_to_leader = 1;
 }
 
 message SetIdempotentDataRequest{
@@ -173,7 +175,7 @@ message SetIdempotentDataRequest{
 }
 
 message SetIdempotentDataReply{
-
+    placement.center.openraft_shared.ForwardToLeader forward_to_leader = 1;
 }
 
 message ExistsIdempotentDataRequest{
@@ -193,7 +195,7 @@ message DeleteIdempotentDataRequest{
 }
 
 message DeleteIdempotentDataReply{
-
+    placement.center.openraft_shared.ForwardToLeader forward_to_leader = 1;
 }
 
 message SaveOffsetDataRequest{
@@ -209,7 +211,7 @@ message SaveOffsetDataRequestOffset{
 }
 
 message SaveOffsetDataReply{
-
+    placement.center.openraft_shared.ForwardToLeader forward_to_leader = 1;
 }
 
 message GetOffsetDataRequest{

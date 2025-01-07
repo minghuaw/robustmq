@@ -40,6 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
         .compile(
             &[
+                "src/placement_center/proto/openraft_shared.proto",
                 "src/placement_center/proto/journal.proto",
                 "src/placement_center/proto/kv.proto",
                 "src/placement_center/proto/mqtt.proto",
