@@ -16,6 +16,7 @@ use std::sync::Arc;
 
 use common_base::utils::vec_util;
 use prost::Message;
+use protocol::placement_center::openraft_shared::ForwardToLeader;
 use protocol::placement_center::placement_center_mqtt::mqtt_service_server::MqttService;
 use protocol::placement_center::placement_center_mqtt::{
     CreateAclReply, CreateAclRequest, CreateBlacklistReply, CreateBlacklistRequest,
@@ -110,10 +111,7 @@ impl MqttService for GrpcMqttService {
             CreateUserRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => Ok(Response::new(CreateUserReply::default())),
-            Err(e) => Err(Status::cancelled(e.to_string())),
-        }
+        super::handle_raft_client_write!(self, data, CreateUserReply)
     }
 
     async fn delete_user(
@@ -127,10 +125,7 @@ impl MqttService for GrpcMqttService {
             DeleteUserRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => Ok(Response::new(DeleteUserReply::default())),
-            Err(e) => Err(Status::cancelled(e.to_string())),
-        }
+        super::handle_raft_client_write!(self, data, DeleteUserReply)
     }
 
     async fn list_session(
@@ -173,10 +168,7 @@ impl MqttService for GrpcMqttService {
             CreateSessionRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => Ok(Response::new(CreateSessionReply::default())),
-            Err(e) => Err(Status::cancelled(e.to_string())),
-        }
+        super::handle_raft_client_write!(self, data, CreateSessionReply)
     }
 
     async fn update_session(
@@ -189,12 +181,7 @@ impl MqttService for GrpcMqttService {
             UpdateSessionRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => return Ok(Response::new(UpdateSessionReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, UpdateSessionReply)
     }
 
     async fn delete_session(
@@ -207,12 +194,7 @@ impl MqttService for GrpcMqttService {
             DeleteSessionRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => return Ok(Response::new(DeleteSessionReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, DeleteSessionReply)
     }
 
     async fn list_topic(
@@ -272,10 +254,7 @@ impl MqttService for GrpcMqttService {
             DeleteTopicRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => Ok(Response::new(DeleteTopicReply::default())),
-            Err(e) => Err(Status::cancelled(e.to_string())),
-        }
+        super::handle_raft_client_write!(self, data, DeleteTopicReply)
     }
 
     async fn set_topic_retain_message(
@@ -321,9 +300,16 @@ impl MqttService for GrpcMqttService {
                     PlacementCenterError::ExecutionResultIsEmpty.to_string(),
                 ));
             }
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
+            Err(e) => match ForwardToLeader::try_from(e) {
+                Ok(forward_to_leader) => {
+                    let reply = SetExclusiveTopicReply {
+                        success: false,
+                        forward_to_leader: Some(forward_to_leader),
+                    };
+                    Ok(Response::new(reply))
+                }
+                Err(e) => Err(Status::cancelled(e.to_string())),
+            },
         }
     }
 
@@ -331,19 +317,11 @@ impl MqttService for GrpcMqttService {
         &self,
         request: Request<DeleteExclusiveTopicRequest>,
     ) -> Result<Response<DeleteExclusiveTopicReply>, Status> {
-        let reply = DeleteExclusiveTopicReply::default();
         let data = StorageData::new(
             StorageDataType::MqttDeleteExclusiveTopic,
             DeleteExclusiveTopicRequest::encode_to_vec(request.get_ref()),
         );
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => {
-                return Ok(Response::new(reply));
-            }
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, DeleteExclusiveTopicReply)
     }
 
     async fn get_share_sub_leader(
@@ -389,12 +367,7 @@ impl MqttService for GrpcMqttService {
             SaveLastWillMessageRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => return Ok(Response::new(SaveLastWillMessageReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, SaveLastWillMessageReply)
     }
     async fn list_acl(
         &self,
@@ -434,12 +407,7 @@ impl MqttService for GrpcMqttService {
             DeleteAclRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => return Ok(Response::new(DeleteAclReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, DeleteAclReply)
     }
 
     async fn create_acl(
@@ -452,12 +420,7 @@ impl MqttService for GrpcMqttService {
             CreateAclRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => return Ok(Response::new(CreateAclReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, CreateAclReply)
     }
 
     async fn list_blacklist(
@@ -498,10 +461,7 @@ impl MqttService for GrpcMqttService {
             DeleteBlacklistRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => Ok(Response::new(DeleteBlacklistReply::default())),
-            Err(e) => Err(Status::cancelled(e.to_string())),
-        }
+        super::handle_raft_client_write!(self, data, DeleteBlacklistReply)
     }
 
     async fn create_blacklist(
@@ -514,10 +474,7 @@ impl MqttService for GrpcMqttService {
             CreateBlacklistRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => Ok(Response::new(CreateBlacklistReply::default())),
-            Err(e) => Err(Status::cancelled(e.to_string())),
-        }
+        super::handle_raft_client_write!(self, data, CreateBlacklistReply)
     }
 
     async fn create_topic_rewrite_rule(
@@ -530,10 +487,7 @@ impl MqttService for GrpcMqttService {
             CreateTopicRewriteRuleRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => Ok(Response::new(CreateTopicRewriteRuleReply::default())),
-            Err(e) => Err(Status::cancelled(e.to_string())),
-        }
+        super::handle_raft_client_write!(self, data, CreateTopicRewriteRuleReply)
     }
 
     async fn delete_topic_rewrite_rule(
@@ -546,10 +500,7 @@ impl MqttService for GrpcMqttService {
             DeleteTopicRewriteRuleRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => Ok(Response::new(DeleteTopicRewriteRuleReply::default())),
-            Err(e) => Err(Status::cancelled(e.to_string())),
-        }
+        super::handle_raft_client_write!(self, data, DeleteTopicRewriteRuleReply)
     }
 
     async fn list_topic_rewrite_rule(

@@ -58,12 +58,7 @@ impl KvService for GrpcKvService {
 
         // Raft state machine is used to store Node data
         let data = StorageData::new(StorageDataType::KvSet, SetRequest::encode_to_vec(&req));
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => return Ok(Response::new(SetReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, SetReply)
     }
 
     async fn get(&self, request: Request<GetRequest>) -> Result<Response<GetReply>, Status> {
@@ -106,12 +101,7 @@ impl KvService for GrpcKvService {
             StorageDataType::KvDelete,
             DeleteRequest::encode_to_vec(&req),
         );
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => return Ok(Response::new(DeleteReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, DeleteReply)
     }
 
     async fn exists(

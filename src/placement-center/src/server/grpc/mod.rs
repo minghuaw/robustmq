@@ -12,6 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+macro_rules! handle_raft_client_write {
+    ($self:ident, $data:ident, $reply_ty:tt) => {
+        match $self.raft_machine_apply.client_write($data).await {
+            Ok(_) => Ok(Response::new(<$reply_ty>::default())),
+            Err(e) => match protocol::placement_center::openraft_shared::ForwardToLeader::try_from(e) {
+                Ok(forward_to_leader) => {
+                    let reply = $reply_ty {
+                        forward_to_leader: Some(forward_to_leader),
+                    };
+                    Ok(Response::new(reply))
+                },
+                Err(e) => Err(Status::cancelled(e.to_string())),
+            }
+        }
+    };
+}
+use handle_raft_client_write;
+
 pub mod service_inner;
 pub mod service_journal;
 pub mod service_kv;

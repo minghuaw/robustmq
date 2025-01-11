@@ -18,6 +18,7 @@ use std::string::FromUtf8Error;
 
 use common_base::error::common::CommonError;
 use openraft::error::{ChangeMembershipError, ClientWriteError, Fatal, RaftError};
+use protocol::placement_center::openraft_shared::ForwardToLeader;
 use thiserror::Error;
 
 use crate::raft::typeconfig::TypeConfig;
@@ -54,14 +55,14 @@ pub enum PlacementCenterError {
     #[error("{0}")]
     TokioTimeErrorElapsed(#[from] tokio::time::error::Elapsed),
 
-    // #[error("{0}")]
-    // OpenRaftError(#[from] RaftError<TypeConfig, ClientWriteError<TypeConfig>>),
+    #[error("{0}")]
+    OpenRaftError(#[from] RaftError<TypeConfig, ClientWriteError<TypeConfig>>),
 
-    #[error(transparent)]
-    RaftFatal(#[from] Fatal<TypeConfig>),
+    // #[error(transparent)]
+    // RaftFatal(#[from] Fatal<TypeConfig>),
 
-    #[error(transparent)]
-    RaftChangeMembershipError(#[from] ChangeMembershipError<TypeConfig>),
+    // #[error(transparent)]
+    // RaftChangeMembershipError(#[from] ChangeMembershipError<TypeConfig>),
 
     #[error("Description The interface {0} submitted logs to the commit log")]
     RaftLogCommitTimeout(String),
@@ -127,4 +128,23 @@ pub enum PlacementCenterError {
 
     #[error("Segment {0} is in the wrong state. It should not be sealed.")]
     SegmentWrongState(String),
+}
+
+impl TryFrom<PlacementCenterError> for ForwardToLeader {
+    type Error = PlacementCenterError;
+
+    fn try_from(value: PlacementCenterError) -> Result<Self, Self::Error> {
+        match value {
+            PlacementCenterError::OpenRaftError(err) => match err {
+                RaftError::APIError(ClientWriteError::ForwardToLeader(err))  => {
+                    Ok(ForwardToLeader {
+                        leader_node_id: err.leader_node.as_ref().map(|node| node.node_id),
+                        leader_node_addr: err.leader_node.map(|node| node.rpc_addr)
+                    })
+                }
+                _ => Err(PlacementCenterError::OpenRaftError(err)),
+            },
+            _ => Err(value),
+        }
+    }
 }

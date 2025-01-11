@@ -28,10 +28,10 @@ pub struct RaftMachineApply {
     pub openraft_node: Raft<TypeConfig>,
 }
 
-pub enum RaftWriteResult {
-    Ok(ClientWriteResponse<TypeConfig>),
-    Err(ForwardToLeader),
-}
+// pub enum RaftWriteResult {
+//     Ok(ClientWriteResponse<TypeConfig>),
+//     Err(ForwardToLeader),
+// }
 
 impl RaftMachineApply {
     pub fn new(openraft_node: Raft<TypeConfig>) -> Self {
@@ -42,8 +42,8 @@ impl RaftMachineApply {
     pub async fn client_write(
         &self,
         data: StorageData,
-    ) -> Result<RaftWriteResult, PlacementCenterError> {
-        self.raft_write(data).await
+    ) -> Result<Option<ClientWriteResponse<TypeConfig>>, PlacementCenterError> {
+        self.raft_write(data).await.map(Some)
     }
 
     #[inline]
@@ -51,28 +51,12 @@ impl RaftMachineApply {
     async fn raft_write(
         &self,
         data: StorageData,
-    ) -> Result<RaftWriteResult, PlacementCenterError> {
-        let resp = timeout(
+    ) -> Result<ClientWriteResponse<TypeConfig>, PlacementCenterError> {
+        timeout(
             Duration::from_secs(10),
             self.openraft_node.client_write(data),
         )
-        .await?;
-
-        match resp {
-            Ok(res) => Ok(RaftWriteResult::Ok(res)),
-            Err(err) => match err {
-                RaftError::APIError(write_err) => match write_err {
-                    ClientWriteError::ForwardToLeader(e) => {
-                        let forward_to_leader = ForwardToLeader {
-                            leader_node_id: e.leader_node.as_ref().map(|node| node.node_id),
-                            leader_node_addr: e.leader_node.map(|node| node.rpc_addr),
-                        };
-                        Ok(RaftWriteResult::Err(forward_to_leader))
-                    },
-                    ClientWriteError::ChangeMembershipError(e) => Err(e.into()),
-                },
-                RaftError::Fatal(fatal) => Err(fatal.into()),
-            },
-        }
+        .await?
+        .map_err(Into::into)
     }
 }

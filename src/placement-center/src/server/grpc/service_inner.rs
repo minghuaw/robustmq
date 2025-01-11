@@ -17,6 +17,7 @@ use std::sync::Arc;
 use common_base::error::common::CommonError;
 use grpc_clients::pool::ClientPool;
 use prost::Message;
+use protocol::placement_center::openraft_shared::ForwardToLeader;
 use protocol::placement_center::placement_center_inner::placement_center_service_server::PlacementCenterService;
 use protocol::placement_center::placement_center_inner::{
     ClusterStatusReply, ClusterStatusRequest, DeleteIdempotentDataReply,
@@ -198,12 +199,7 @@ impl PlacementCenterService for GrpcPlacementService {
             SetResourceConfigRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => return Ok(Response::new(SetResourceConfigReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, SetResourceConfigReply)
     }
 
     async fn get_resource_config(
@@ -241,12 +237,7 @@ impl PlacementCenterService for GrpcPlacementService {
             DeleteResourceConfigRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => return Ok(Response::new(DeleteResourceConfigReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, DeleteResourceConfigReply)
     }
 
     async fn set_idempotent_data(
@@ -260,12 +251,7 @@ impl PlacementCenterService for GrpcPlacementService {
             SetIdempotentDataRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => return Ok(Response::new(SetIdempotentDataReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, SetIdempotentDataReply)
     }
 
     async fn exists_idempotent_data(
@@ -298,12 +284,7 @@ impl PlacementCenterService for GrpcPlacementService {
             DeleteIdempotentDataRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => return Ok(Response::new(DeleteIdempotentDataReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, DeleteIdempotentDataReply)
     }
 
     async fn save_offset_data(
@@ -316,12 +297,7 @@ impl PlacementCenterService for GrpcPlacementService {
             SaveOffsetDataRequest::encode_to_vec(&req),
         );
 
-        match self.raft_machine_apply.client_write(data).await {
-            Ok(_) => return Ok(Response::new(SaveOffsetDataReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
-        }
+        super::handle_raft_client_write!(self, data, SaveOffsetDataReply)
     }
 
     async fn get_offset_data(
