@@ -32,7 +32,7 @@ use protocol::placement_center::placement_center_mqtt::{
 };
 use tonic::transport::Channel;
 
-use crate::macros::impl_retriable_request;
+use crate::macros::{impl_may_require_forwarding, impl_retriable_request};
 
 pub mod call;
 
@@ -71,6 +71,34 @@ impl Manager for MqttServiceManager {
         Ok(conn)
     }
 }
+
+// Reply types that may require forwarding
+impl_may_require_forwarding!(SetExclusiveTopicReply, forward_to_leader);
+impl_may_require_forwarding!(DeleteExclusiveTopicReply, forward_to_leader);
+impl_may_require_forwarding!(CreateUserReply, forward_to_leader);
+impl_may_require_forwarding!(DeleteUserReply, forward_to_leader);
+impl_may_require_forwarding!(CreateTopicReply, forward_to_leader);
+impl_may_require_forwarding!(DeleteTopicReply, forward_to_leader);
+impl_may_require_forwarding!(CreateSessionReply, forward_to_leader);
+impl_may_require_forwarding!(UpdateSessionReply, forward_to_leader);
+impl_may_require_forwarding!(DeleteSessionReply, forward_to_leader);
+impl_may_require_forwarding!(SaveLastWillMessageReply, forward_to_leader);
+impl_may_require_forwarding!(DeleteAclReply, forward_to_leader);
+impl_may_require_forwarding!(CreateAclReply, forward_to_leader);
+impl_may_require_forwarding!(CreateBlacklistReply, forward_to_leader);
+impl_may_require_forwarding!(DeleteBlacklistReply, forward_to_leader);
+impl_may_require_forwarding!(CreateTopicRewriteRuleReply, forward_to_leader);
+impl_may_require_forwarding!(DeleteTopicRewriteRuleReply, forward_to_leader);
+impl_may_require_forwarding!(SetTopicRetainMessageReply, forward_to_leader);
+
+// Reply types that do not have a forwarding field
+impl_may_require_forwarding!(ListUserReply);
+impl_may_require_forwarding!(ListAclReply);
+impl_may_require_forwarding!(ListBlacklistReply);
+impl_may_require_forwarding!(ListSessionReply);
+impl_may_require_forwarding!(ListTopicReply);
+impl_may_require_forwarding!(ListTopicRewriteRuleReply);
+impl_may_require_forwarding!(GetShareSubLeaderReply);
 
 impl_retriable_request!(
     GetShareSubLeaderRequest,

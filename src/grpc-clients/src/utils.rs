@@ -20,12 +20,14 @@ use common_base::error::common::CommonError;
 use regex::Regex;
 use tokio::time::sleep;
 
+use protocol::placement_center::openraft_shared::ForwardToLeader;
+
 use crate::pool::ClientPool;
 use crate::{retry_sleep_time, retry_times};
 
 pub(crate) trait RetriableRequest: Clone {
     type Client;
-    type Response;
+    type Response: MayRequireForwarding;
     type Error: std::error::Error;
 
     const IS_WRITE_REQUEST: bool = false;
@@ -39,6 +41,10 @@ pub(crate) trait RetriableRequest: Clone {
         client: &mut Self::Client,
         request: Self,
     ) -> Result<Self::Response, Self::Error>;
+}
+
+pub(crate) trait MayRequireForwarding {
+    fn forward_to_leader(&self) -> Option<&ForwardToLeader>;
 }
 
 pub(crate) async fn retry_call<Req>(
@@ -82,45 +88,51 @@ where
             .map_err(Into::into)?;
 
         match Req::call_once(client.deref_mut(), request.clone()).await {
-            Ok(data) => return Ok(data),
-            Err(e) => {
-                let err: CommonError = e.into();
+            Ok(res) => {
+                match res.forward_to_leader() {
+                    Some(leader) => {
+                        tried_addrs.insert(target_addr);
+                        if let Some(leader_addr) = leader.leader_node_addr.as_ref() {
+                            client_pool.set_leader_addr(addr.to_string(), leader_addr.clone());
 
-                if err.to_string().contains("forward request to") {
-                    tried_addrs.insert(target_addr);
+                            if !tried_addrs.contains(leader_addr) {
+                                let mut leader_client =
+                                    match Req::get_client(client_pool, leader_addr).await {
+                                        Ok(client) => client,
+                                        Err(_) => {
+                                            tried_addrs.insert(leader_addr.clone());
+                                            continue;
+                                        }
+                                    };
 
-                    if let Some(leader_addr) = get_forward_addr(&err) {
-                        client_pool.set_leader_addr(addr.to_string(), leader_addr.clone());
-
-                        if !tried_addrs.contains(&leader_addr) {
-                            let mut leader_client =
-                                match Req::get_client(client_pool, &leader_addr).await {
-                                    Ok(client) => client,
+                                match Req::call_once(leader_client.deref_mut(), request.clone()).await {
+                                    Ok(data) => return Ok(data),
                                     Err(_) => {
-                                        tried_addrs.insert(leader_addr);
-                                        continue;
+                                        tried_addrs.insert(leader_addr.clone());
                                     }
-                                };
-
-                            match Req::call_once(leader_client.deref_mut(), request.clone()).await {
-                                Ok(data) => return Ok(data),
-                                Err(_) => {
-                                    tried_addrs.insert(leader_addr);
                                 }
                             }
                         }
+
+                        if times > retry_times() {
+                            return Err(CommonError::CommonError("Not found leader".to_string()));
+                        }
                     }
-                } else {
+                    None => {
+                        return Ok(res);
+                    }
+                }
+            },
+            Err(e) => {
+                let err: CommonError = e.into();
+                if times > retry_times() {
+                    // return Err(CommonError::CommonError("Not found leader".to_string()));
                     return Err(err);
                 }
-
-                if times > retry_times() {
-                    return Err(CommonError::CommonError("Not found leader".to_string()));
-                }
-                times += 1;
-                sleep(Duration::from_secs(retry_sleep_time(times))).await;
             }
         }
+        times += 1;
+        sleep(Duration::from_secs(retry_sleep_time(times))).await;
     }
 }
 

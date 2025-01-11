@@ -128,6 +128,7 @@ pub async fn create_shard_by_req(
     Ok(CreateShardReply {
         segment_no: segment.segment_seq,
         replica,
+        forward_to_leader: None,
     })
 }
 

@@ -271,9 +271,15 @@ impl MqttService for GrpcMqttService {
         .await
         {
             Ok(_) => return Ok(Response::new(SetTopicRetainMessageReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
+            Err(e) => match ForwardToLeader::try_from(e) {
+                Ok(forward_to_leader) => {
+                    let reply = SetTopicRetainMessageReply {
+                        forward_to_leader: Some(forward_to_leader),
+                    };
+                    Ok(Response::new(reply))
+                }
+                Err(e) => Err(Status::cancelled(e.to_string())),
+            },
         }
     }
 

@@ -69,7 +69,9 @@ pub async fn create_segment_by_req(
 
     if engine_cache.shard_idle_segment_num(&req.cluster_name, &req.namespace, &req.shard_name) >= 1
     {
-        return Ok(CreateNextSegmentReply {});
+        return Ok(CreateNextSegmentReply {
+            forward_to_leader: None,
+        });
     }
 
     let mut shard_notice = false;
@@ -143,7 +145,9 @@ pub async fn create_segment_by_req(
         update_cache_by_set_shard(&req.cluster_name, call_manager, client_pool, shard).await?;
     }
 
-    Ok(CreateNextSegmentReply {})
+    Ok(CreateNextSegmentReply {
+        forward_to_leader: None,
+    })
 }
 
 pub async fn delete_segment_by_req(

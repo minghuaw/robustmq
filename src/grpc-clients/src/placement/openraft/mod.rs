@@ -21,7 +21,7 @@ use protocol::placement_center::placement_center_openraft::{
 };
 use tonic::transport::Channel;
 
-use crate::macros::impl_retriable_request;
+use crate::macros::{impl_may_require_forwarding, impl_retriable_request};
 
 pub mod call;
 
@@ -56,6 +56,13 @@ impl Manager for OpenRaftServiceManager {
         Ok(conn)
     }
 }
+
+// Reply types that do not have a forwarding field
+impl_may_require_forwarding!(VoteReply);
+impl_may_require_forwarding!(AppendReply);
+impl_may_require_forwarding!(SnapshotReply);
+impl_may_require_forwarding!(AddLearnerReply);
+impl_may_require_forwarding!(ChangeMembershipReply);
 
 impl_retriable_request!(
     VoteRequest,

@@ -23,6 +23,7 @@ use protocol::placement_center::placement_center_journal::{
     ListShardReply, ListShardRequest, UpdateSegmentMetaReply, UpdateSegmentMetaRequest,
     UpdateSegmentStatusReply, UpdateSegmentStatusRequest,
 };
+use protocol::placement_center::openraft_shared::ForwardToLeader;
 use rocksdb_engine::RocksDBEngine;
 use tonic::{Request, Response, Status};
 
@@ -140,10 +141,18 @@ impl EngineService for GrpcEngineService {
         .await
         {
             Ok(data) => {
-                return Ok(Response::new(data));
+                Ok(Response::new(data))
             }
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
+            Err(e) => match ForwardToLeader::try_from(e) {
+                Ok(forward) => {
+                    Ok(Response::new(CreateShardReply {
+                        forward_to_leader: Some(forward),
+                        ..Default::default()
+                    }))
+                },
+                Err(e) => {
+                    Err(Status::cancelled(e.to_string()))
+                }
             }
         }
     }
@@ -170,11 +179,18 @@ impl EngineService for GrpcEngineService {
         .await
         {
             Ok(data) => {
-                return Ok(Response::new(data));
+                Ok(Response::new(data))
             }
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
+            Err(e) => match ForwardToLeader::try_from(e) {
+                Ok(forward) => {
+                    Ok(Response::new(DeleteShardReply {
+                        forward_to_leader: Some(forward),
+                    }))
+                }
+                Err(e) => {
+                    Err(Status::cancelled(e.to_string()))
+                }
+            },
         }
     }
 
@@ -262,9 +278,16 @@ impl EngineService for GrpcEngineService {
             Ok(data) => {
                 return Ok(Response::new(data));
             }
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
+            Err(e) => match ForwardToLeader::try_from(e) {
+                Ok(forward) => {
+                    return Ok(Response::new(CreateNextSegmentReply {
+                        forward_to_leader: Some(forward),
+                    }));
+                }
+                Err(e) => {
+                    return Err(Status::cancelled(e.to_string()));
+                }
+            },
         }
     }
 
@@ -289,10 +312,17 @@ impl EngineService for GrpcEngineService {
         )
         .await
         {
-            Ok(data) => return Ok(Response::new(data)),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
+            Ok(data) => Ok(Response::new(data)),
+            Err(e) => match ForwardToLeader::try_from(e) {
+                Ok(forward) => {
+                    Ok(Response::new(DeleteSegmentReply {
+                        forward_to_leader: Some(forward),
+                    }))
+                }
+                Err(e) => {
+                    Err(Status::cancelled(e.to_string()))
+                }
+            },
         }
     }
 
@@ -317,9 +347,16 @@ impl EngineService for GrpcEngineService {
         .await
         {
             Ok(()) => return Ok(Response::new(UpdateSegmentStatusReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
+            Err(e) => match ForwardToLeader::try_from(e) {
+                Ok(forward) => {
+                    return Ok(Response::new(UpdateSegmentStatusReply {
+                        forward_to_leader: Some(forward),
+                    }));
+                }
+                Err(e) => {
+                    return Err(Status::cancelled(e.to_string()));
+                }
+            },
         }
     }
 
@@ -396,9 +433,16 @@ impl EngineService for GrpcEngineService {
         .await
         {
             Ok(()) => return Ok(Response::new(UpdateSegmentMetaReply::default())),
-            Err(e) => {
-                return Err(Status::cancelled(e.to_string()));
-            }
+            Err(e) => match ForwardToLeader::try_from(e) {
+                Ok(forward) => {
+                    return Ok(Response::new(UpdateSegmentMetaReply {
+                        forward_to_leader: Some(forward),
+                    }));
+                }
+                Err(e) => {
+                    return Err(Status::cancelled(e.to_string()));
+                }
+            },
         }
     }
 }

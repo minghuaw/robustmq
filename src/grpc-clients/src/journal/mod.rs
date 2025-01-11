@@ -24,10 +24,18 @@ use protocol::journal_server::journal_inner::{
 };
 use tonic::transport::Channel;
 
-use crate::macros::impl_retriable_request;
+use crate::macros::*;
 
 pub mod admin;
 pub mod inner;
+
+impl_may_require_forwarding!(UpdateJournalCacheReply);
+impl_may_require_forwarding!(DeleteShardFileReply);
+impl_may_require_forwarding!(GetShardDeleteStatusReply);
+impl_may_require_forwarding!(DeleteSegmentFileReply);
+impl_may_require_forwarding!(GetSegmentDeleteStatusReply);
+impl_may_require_forwarding!(ListShardReply);
+impl_may_require_forwarding!(ListSegmentReply);
 
 impl_retriable_request!(
     UpdateJournalCacheRequest,

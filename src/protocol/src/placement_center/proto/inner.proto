@@ -89,7 +89,7 @@ message RegisterNodeRequest{
 }
 
 message RegisterNodeReply{
-
+    placement.center.openraft_shared.ForwardToLeader forward_to_leader = 1;
 }
 
 message UnRegisterNodeRequest{
@@ -99,7 +99,7 @@ message UnRegisterNodeRequest{
 }
 
 message UnRegisterNodeReply{
-
+    placement.center.openraft_shared.ForwardToLeader forward_to_leader = 1;
 }
 
 message HeartbeatRequest{

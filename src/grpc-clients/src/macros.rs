@@ -85,3 +85,24 @@ macro_rules! impl_retriable_request {
 }
 
 pub(crate) use impl_retriable_request;
+
+/// Helper macro to implement the `MayRequireForwarding` trait for a given
+/// response type.
+macro_rules! impl_may_require_forwarding {
+    ($res:ty) => {
+        impl $crate::utils::MayRequireForwarding for $res {
+            fn forward_to_leader(&self) -> Option<&::protocol::placement_center::openraft_shared::ForwardToLeader> {
+                None
+            }
+        }
+    };
+    ($res:ty, $field:ident) => {
+        impl $crate::utils::MayRequireForwarding for $res {
+            fn forward_to_leader(&self) -> Option<&::protocol::placement_center::openraft_shared::ForwardToLeader> {
+                self.$field.as_ref()
+            }
+        }
+    };
+}
+
+pub(crate) use impl_may_require_forwarding;

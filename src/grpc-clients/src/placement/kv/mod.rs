@@ -21,7 +21,7 @@ use protocol::placement_center::placement_center_kv::{
 };
 use tonic::transport::Channel;
 
-use crate::macros::impl_retriable_request;
+use crate::macros::{impl_may_require_forwarding, impl_retriable_request};
 
 pub mod call;
 
@@ -60,6 +60,14 @@ impl Manager for KvServiceManager {
         Ok(conn)
     }
 }
+
+// Reply types that may require forwarding
+impl_may_require_forwarding!(SetReply, forward_to_leader);
+impl_may_require_forwarding!(DeleteReply, forward_to_leader);
+
+// Reply types that do not have a forwarding field
+impl_may_require_forwarding!(GetReply);
+impl_may_require_forwarding!(ExistsReply);
 
 impl_retriable_request!(
     SetRequest,

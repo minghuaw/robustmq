@@ -401,7 +401,7 @@ message SetTopicRetainMessageRequest{
 }
 
 message SetTopicRetainMessageReply{
-
+    placement.center.openraft_shared.ForwardToLeader forward_to_leader = 1;
 }
 
 message ListSessionRequest{

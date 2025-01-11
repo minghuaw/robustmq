@@ -26,7 +26,7 @@ use protocol::placement_center::placement_center_inner::{
 };
 use tonic::transport::Channel;
 
-use crate::macros::impl_retriable_request;
+use crate::macros::{impl_may_require_forwarding, impl_retriable_request};
 
 pub mod call;
 
@@ -64,6 +64,23 @@ impl Manager for PlacementServiceManager {
         Ok(conn)
     }
 }
+
+// Reply types that may require forwarding
+impl_may_require_forwarding!(SetResourceConfigReply, forward_to_leader);
+impl_may_require_forwarding!(DeleteResourceConfigReply, forward_to_leader);
+impl_may_require_forwarding!(SetIdempotentDataReply, forward_to_leader);
+impl_may_require_forwarding!(DeleteIdempotentDataReply, forward_to_leader);
+impl_may_require_forwarding!(SaveOffsetDataReply, forward_to_leader);
+impl_may_require_forwarding!(RegisterNodeReply, forward_to_leader);
+impl_may_require_forwarding!(UnRegisterNodeReply, forward_to_leader);
+
+// Reply types that do not have a forwarding field
+impl_may_require_forwarding!(ClusterStatusReply);
+impl_may_require_forwarding!(NodeListReply);
+impl_may_require_forwarding!(HeartbeatReply);
+impl_may_require_forwarding!(GetResourceConfigReply);
+impl_may_require_forwarding!(ExistsIdempotentDataReply);
+impl_may_require_forwarding!(GetOffsetDataReply);
 
 impl_retriable_request!(
     ClusterStatusRequest,

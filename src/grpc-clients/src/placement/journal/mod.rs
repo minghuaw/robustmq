@@ -24,7 +24,7 @@ use protocol::placement_center::placement_center_journal::{
 };
 use tonic::transport::Channel;
 
-use crate::macros::impl_retriable_request;
+use crate::macros::{impl_may_require_forwarding, impl_retriable_request};
 
 pub mod call;
 
@@ -63,6 +63,19 @@ impl Manager for JournalServiceManager {
         Ok(conn)
     }
 }
+
+// Reply types that may require forwarding
+impl_may_require_forwarding!(CreateShardReply, forward_to_leader);
+impl_may_require_forwarding!(DeleteShardReply, forward_to_leader);
+impl_may_require_forwarding!(CreateNextSegmentReply, forward_to_leader);
+impl_may_require_forwarding!(DeleteSegmentReply, forward_to_leader);
+impl_may_require_forwarding!(UpdateSegmentStatusReply, forward_to_leader);
+impl_may_require_forwarding!(UpdateSegmentMetaReply, forward_to_leader);
+
+// Reply types that do not require forwarding
+impl_may_require_forwarding!(ListShardReply);
+impl_may_require_forwarding!(ListSegmentReply);
+impl_may_require_forwarding!(ListSegmentMetaReply);
 
 impl_retriable_request!(
     ListShardRequest,

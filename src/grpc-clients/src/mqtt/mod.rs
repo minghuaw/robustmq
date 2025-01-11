@@ -30,10 +30,30 @@ use protocol::broker_mqtt::broker_mqtt_inner::{
 };
 use tonic::transport::Channel;
 
-use crate::macros::impl_retriable_request;
+use crate::macros::*;
 
 pub mod admin;
 pub mod inner;
+
+impl_may_require_forwarding!(DeleteSessionReply);
+impl_may_require_forwarding!(UpdateCacheReply);
+impl_may_require_forwarding!(SendLastWillMessageReply);
+impl_may_require_forwarding!(ClusterStatusReply);
+impl_may_require_forwarding!(ListUserReply);
+impl_may_require_forwarding!(CreateUserReply);
+impl_may_require_forwarding!(DeleteUserReply);
+impl_may_require_forwarding!(ListAclReply);
+impl_may_require_forwarding!(CreateAclReply);
+impl_may_require_forwarding!(DeleteAclReply);
+impl_may_require_forwarding!(ListBlacklistReply);
+impl_may_require_forwarding!(CreateBlacklistReply);
+impl_may_require_forwarding!(DeleteBlacklistReply);
+impl_may_require_forwarding!(ListConnectionReply);
+impl_may_require_forwarding!(EnableSlowSubScribeReply);
+impl_may_require_forwarding!(ListSlowSubscribeReply);
+impl_may_require_forwarding!(ListTopicReply);
+impl_may_require_forwarding!(CreateTopicRewriteRuleReply);
+impl_may_require_forwarding!(DeleteTopicRewriteRuleReply);
 
 impl_retriable_request!(
     DeleteSessionRequest,
