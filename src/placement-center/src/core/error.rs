@@ -17,7 +17,7 @@ use std::net::AddrParseError;
 use std::string::FromUtf8Error;
 
 use common_base::error::common::CommonError;
-use openraft::error::{ChangeMembershipError, ClientWriteError, Fatal, RaftError};
+use openraft::error::{ClientWriteError, RaftError};
 use protocol::placement_center::openraft_shared::ForwardToLeader;
 use thiserror::Error;
 
@@ -63,7 +63,6 @@ pub enum PlacementCenterError {
 
     // #[error(transparent)]
     // RaftChangeMembershipError(#[from] ChangeMembershipError<TypeConfig>),
-
     #[error("Description The interface {0} submitted logs to the commit log")]
     RaftLogCommitTimeout(String),
 
@@ -136,10 +135,10 @@ impl TryFrom<PlacementCenterError> for ForwardToLeader {
     fn try_from(value: PlacementCenterError) -> Result<Self, Self::Error> {
         match value {
             PlacementCenterError::OpenRaftError(err) => match err {
-                RaftError::APIError(ClientWriteError::ForwardToLeader(err))  => {
+                RaftError::APIError(ClientWriteError::ForwardToLeader(err)) => {
                     Ok(ForwardToLeader {
                         leader_node_id: err.leader_node.as_ref().map(|node| node.node_id),
-                        leader_node_addr: err.leader_node.map(|node| node.rpc_addr)
+                        leader_node_addr: err.leader_node.map(|node| node.rpc_addr),
                     })
                 }
                 _ => Err(PlacementCenterError::OpenRaftError(err)),

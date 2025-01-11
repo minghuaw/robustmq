@@ -14,10 +14,8 @@
 
 use std::time::Duration;
 
-use openraft::error::{ClientWriteError, RaftError};
 use openraft::raft::ClientWriteResponse;
 use openraft::Raft;
-use protocol::placement_center::openraft_shared::ForwardToLeader;
 use tokio::time::timeout;
 
 use crate::core::error::PlacementCenterError;
@@ -38,7 +36,6 @@ impl RaftMachineApply {
         RaftMachineApply { openraft_node }
     }
 
-    #[must_use]
     pub async fn client_write(
         &self,
         data: StorageData,
@@ -47,7 +44,6 @@ impl RaftMachineApply {
     }
 
     #[inline]
-    #[must_use]
     async fn raft_write(
         &self,
         data: StorageData,

@@ -17,10 +17,9 @@ use std::ops::DerefMut;
 use std::time::Duration;
 
 use common_base::error::common::CommonError;
+use protocol::placement_center::openraft_shared::ForwardToLeader;
 use regex::Regex;
 use tokio::time::sleep;
-
-use protocol::placement_center::openraft_shared::ForwardToLeader;
 
 use crate::pool::ClientPool;
 use crate::{retry_sleep_time, retry_times};
@@ -88,39 +87,37 @@ where
             .map_err(Into::into)?;
 
         match Req::call_once(client.deref_mut(), request.clone()).await {
-            Ok(res) => {
-                match res.forward_to_leader() {
-                    Some(leader) => {
-                        tried_addrs.insert(target_addr);
-                        if let Some(leader_addr) = leader.leader_node_addr.as_ref() {
-                            client_pool.set_leader_addr(addr.to_string(), leader_addr.clone());
+            Ok(res) => match res.forward_to_leader() {
+                Some(leader) => {
+                    tried_addrs.insert(target_addr);
+                    if let Some(leader_addr) = leader.leader_node_addr.as_ref() {
+                        client_pool.set_leader_addr(addr.to_string(), leader_addr.clone());
 
-                            if !tried_addrs.contains(leader_addr) {
-                                let mut leader_client =
-                                    match Req::get_client(client_pool, leader_addr).await {
-                                        Ok(client) => client,
-                                        Err(_) => {
-                                            tried_addrs.insert(leader_addr.clone());
-                                            continue;
-                                        }
-                                    };
-
-                                match Req::call_once(leader_client.deref_mut(), request.clone()).await {
-                                    Ok(data) => return Ok(data),
+                        if !tried_addrs.contains(leader_addr) {
+                            let mut leader_client =
+                                match Req::get_client(client_pool, leader_addr).await {
+                                    Ok(client) => client,
                                     Err(_) => {
                                         tried_addrs.insert(leader_addr.clone());
+                                        continue;
                                     }
+                                };
+
+                            match Req::call_once(leader_client.deref_mut(), request.clone()).await {
+                                Ok(data) => return Ok(data),
+                                Err(_) => {
+                                    tried_addrs.insert(leader_addr.clone());
                                 }
                             }
                         }
+                    }
 
-                        if times > retry_times() {
-                            return Err(CommonError::CommonError("Not found leader".to_string()));
-                        }
+                    if times > retry_times() {
+                        return Err(CommonError::CommonError("Not found leader".to_string()));
                     }
-                    None => {
-                        return Ok(res);
-                    }
+                }
+                None => {
+                    return Ok(res);
                 }
             },
             Err(e) => {
@@ -136,6 +133,8 @@ where
     }
 }
 
+// TODO: maybe use this to capture the leader address in errors that aren't handled properly thru grpc message?
+#[allow(dead_code)]
 pub fn get_forward_addr(err: &CommonError) -> Option<String> {
     let error_info = err.to_string();
     let re = Regex::new(r"rpc_addr: ([^}]+)").unwrap();

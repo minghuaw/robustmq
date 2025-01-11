@@ -15,6 +15,7 @@
 use std::sync::Arc;
 
 use grpc_clients::pool::ClientPool;
+use protocol::placement_center::openraft_shared::ForwardToLeader;
 use protocol::placement_center::placement_center_journal::engine_service_server::EngineService;
 use protocol::placement_center::placement_center_journal::{
     CreateNextSegmentReply, CreateNextSegmentRequest, CreateShardReply, CreateShardRequest,
@@ -23,7 +24,6 @@ use protocol::placement_center::placement_center_journal::{
     ListShardReply, ListShardRequest, UpdateSegmentMetaReply, UpdateSegmentMetaRequest,
     UpdateSegmentStatusReply, UpdateSegmentStatusRequest,
 };
-use protocol::placement_center::openraft_shared::ForwardToLeader;
 use rocksdb_engine::RocksDBEngine;
 use tonic::{Request, Response, Status};
 
@@ -140,20 +140,14 @@ impl EngineService for GrpcEngineService {
         )
         .await
         {
-            Ok(data) => {
-                Ok(Response::new(data))
-            }
+            Ok(data) => Ok(Response::new(data)),
             Err(e) => match ForwardToLeader::try_from(e) {
-                Ok(forward) => {
-                    Ok(Response::new(CreateShardReply {
-                        forward_to_leader: Some(forward),
-                        ..Default::default()
-                    }))
-                },
-                Err(e) => {
-                    Err(Status::cancelled(e.to_string()))
-                }
-            }
+                Ok(forward) => Ok(Response::new(CreateShardReply {
+                    forward_to_leader: Some(forward),
+                    ..Default::default()
+                })),
+                Err(e) => Err(Status::cancelled(e.to_string())),
+            },
         }
     }
 
@@ -178,18 +172,12 @@ impl EngineService for GrpcEngineService {
         )
         .await
         {
-            Ok(data) => {
-                Ok(Response::new(data))
-            }
+            Ok(data) => Ok(Response::new(data)),
             Err(e) => match ForwardToLeader::try_from(e) {
-                Ok(forward) => {
-                    Ok(Response::new(DeleteShardReply {
-                        forward_to_leader: Some(forward),
-                    }))
-                }
-                Err(e) => {
-                    Err(Status::cancelled(e.to_string()))
-                }
+                Ok(forward) => Ok(Response::new(DeleteShardReply {
+                    forward_to_leader: Some(forward),
+                })),
+                Err(e) => Err(Status::cancelled(e.to_string())),
             },
         }
     }
@@ -314,14 +302,10 @@ impl EngineService for GrpcEngineService {
         {
             Ok(data) => Ok(Response::new(data)),
             Err(e) => match ForwardToLeader::try_from(e) {
-                Ok(forward) => {
-                    Ok(Response::new(DeleteSegmentReply {
-                        forward_to_leader: Some(forward),
-                    }))
-                }
-                Err(e) => {
-                    Err(Status::cancelled(e.to_string()))
-                }
+                Ok(forward) => Ok(Response::new(DeleteSegmentReply {
+                    forward_to_leader: Some(forward),
+                })),
+                Err(e) => Err(Status::cancelled(e.to_string())),
             },
         }
     }
